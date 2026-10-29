@@ -1,0 +1,132 @@
+from collections import deque
+
+graph = {
+    "Спасская": ["Достоевская", "Сенная площадь"],
+    "Достоевская": ["Спасская", "Владимирская"],
+    "Владимирская": ["Достоевская", "Пушкинская"],
+    "Пушкинская": ["Владимирская", "Звенигородская"],
+    "Звенигородская": ["Пушкинская", "Обводный канал"],
+    "Обводный канал": ["Звенигородская"],
+
+    "Садовая": ["Сенная площадь", "Адмиралтейская"],
+    "Сенная площадь": ["Садовая", "Спасская"],
+    "Адмиралтейская": ["Садовая"],
+
+    "Гостиный двор": ["Невский проспект", "Маяковская"],
+    "Маяковская": ["Гостиный двор", "Площадь Александра Невского"],
+    "Площадь Александра Невского": ["Маяковская", "Новочеркасская"],
+    "Новочеркасская": ["Площадь Александра Невского", "Ладожская"],
+    "Ладожская": ["Новочеркасская", "Проспект Большевиков"],
+    "Проспект Большевиков": ["Ладожская"],
+
+    "Площадь Восстания": ["Маяковская", "Владимирская"],
+    "Технологический институт": ["Пушкинская"],
+
+    "Невский проспект": ["Гостиный двор"],
+    "Технологический институт 2": ["Сенная площадь"],
+}
+
+def add_edge(u, v):
+    if u in graph:
+        if v not in graph[u]: graph[u].append(v)
+    if v in graph:
+        if u not in graph[v]: graph[v].append(u)
+
+add_edge("Невский проспект", "Гостиный двор")
+add_edge("Гостиный двор", "Невский проспект")
+add_edge("Площадь Восстания", "Маяковская")
+add_edge("Маяковская", "Площадь Восстания")
+add_edge("Сенная площадь", "Спасская")
+add_edge("Спасская", "Сенная площадь")
+add_edge("Сенная площадь", "Садовая")
+add_edge("Садовая", "Сенная площадь")
+add_edge("Технологический институт", "Технологический институт 2")
+add_edge("Технологический институт 2", "Технологический институт")
+add_edge("Технологический институт 2", "Сенная площадь")
+add_edge("Сенная площадь", "Технологический институт 2")
+add_edge("Пушкинская", "Технологический институт")
+add_edge("Технологический институт", "Пушкинская")
+add_edge("Владимирская", "Площадь Восстания")
+add_edge("Площадь Восстания", "Владимирская")
+add_edge("Владимирская", "Достоевская")
+add_edge("Достоевская", "Владимирская")
+
+graph["Технологический институт"] = list(
+    set(graph["Технологический институт"] + graph.get("Технологический институт 2", [])))
+if "Технологический институт 2" in graph:
+    del graph["Технологический институт 2"]
+for node in graph:
+    if "Технологический институт 2" in graph[node]:
+        graph[node].remove("Технологический институт 2")
+        if "Технологический институт" not in graph[node]:
+            graph[node].append("Технологический институт")
+
+
+def bfs(start, end):
+    if start not in graph or end not in graph:
+        return None
+    queue = deque([[start]])
+    visited = {start}
+
+    while queue:
+        path = queue.popleft()
+        node = path[-1]
+        if node == end:
+            return path
+        for neighbor in graph.get(node, []):
+            if neighbor not in visited:
+                visited.add(neighbor)
+                new_path = list(path)
+                new_path.append(neighbor)
+                queue.append(new_path)
+    return None
+
+def dfs(start, end, path=None, visited=None):
+    if path is None:
+        path = [start]
+    if visited is None:
+        visited = set()
+    visited.add(start)
+    if start == end:
+        return path
+    for neighbor in graph.get(start, []):
+        if neighbor not in visited:
+            new_path = dfs(neighbor, end, path + [neighbor], visited)
+            if new_path:
+                return new_path
+    return None
+
+
+if __name__ == "__main__":
+    print("Доступные станции:")
+    for s in sorted(graph.keys()):
+        print(f"  - {s}")
+    print()
+
+    start_station = input("Введите начальную станцию: ").strip()
+    end_station   = input("Введите конечную станцию:  ").strip()
+
+    if start_station not in graph:
+        print(f"Ошибка: станция '{start_station}' не найдена в графе.")
+    elif end_station not in graph:
+        print(f"Ошибка: станция '{end_station}' не найдена в графе.")
+    elif start_station == end_station:
+        print(f"Начальная и конечная станции совпадают: {start_station}")
+    else:
+        print(f"\nПоиск пути от '{start_station}' до '{end_station}':\n")
+
+        path_bfs = bfs(start_station, end_station)
+        if path_bfs:
+            print("BFS (Поиск в ширину):")
+            print(" -> ".join(path_bfs))
+        else:
+            print("BFS: Путь не найден.")
+
+        print()
+
+        path_dfs = dfs(start_station, end_station)
+        if path_dfs:
+            print("DFS (Поиск в глубину):")
+            print(" -> ".join(path_dfs))
+        else:
+            print("DFS: Путь не найден.")
