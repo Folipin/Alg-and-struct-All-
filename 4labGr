@@ -66,7 +66,7 @@ def bfs(start, end):
     if start not in graph or end not in graph:
         return None
     queue = deque([[start]])
-    visited = {start}
+    poshem = {start}
 
     while queue:
         path = queue.popleft()
@@ -74,24 +74,24 @@ def bfs(start, end):
         if node == end:
             return path
         for neighbor in graph.get(node, []):
-            if neighbor not in visited:
-                visited.add(neighbor)
+            if neighbor not in poshem:
+                poshem.add(neighbor)
                 new_path = list(path)
                 new_path.append(neighbor)
                 queue.append(new_path)
     return None
 
-def dfs(start, end, path=None, visited=None):
+def dfs(start, end, path=None, poshem=None):
     if path is None:
         path = [start]
-    if visited is None:
-        visited = set()
-    visited.add(start)
+    if poshem is None:
+        poshem = set()
+    poshem.add(start)
     if start == end:
         return path
     for neighbor in graph.get(start, []):
-        if neighbor not in visited:
-            new_path = dfs(neighbor, end, path + [neighbor], visited)
+        if neighbor not in poshem:
+            new_path = dfs(neighbor, end, path + [neighbor], poshem)
             if new_path:
                 return new_path
     return None
